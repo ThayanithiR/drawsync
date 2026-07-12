@@ -103,7 +103,7 @@ function initializeGame(roomId) {
   // Connect to socket (Option B: Decoupled Vercel/Render support)
   const socketUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? ''
-    : 'https://drawsync-backend.onrender.com'; // REPLACE with your actual Render service URL
+    : 'https://drawsync-backend-udfw.onrender.com';
     
   socket = io(socketUrl);
   
