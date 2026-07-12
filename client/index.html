@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DrawSync • Multiplayer Drawing Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Join Screen -->
+  <div id="join-screen" class="screen active">
+    <div class="join-container">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 80 L50 20 L80 80" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="50" cy="50" r="5" fill="currentColor"/>
+          </svg>
+        </div>
+        <h1>DrawSync</h1>
+      </div>
+      <p class="tagline">Draw, guess, and sync in isolated real-time lobbies</p>
+      
+      <!-- Lobby Join Mode Tabs -->
+      <div class="lobby-tabs">
+        <button id="tab-create" class="tab-btn active">Create Room</button>
+        <button id="tab-join" class="tab-btn">Join Room</button>
+      </div>
+
+      <form id="join-form">
+        <div class="form-group">
+          <input 
+            type="text" 
+            id="player-name" 
+            placeholder="Enter your name" 
+            maxlength="15" 
+            required
+            autocomplete="off"
+          >
+        </div>
+        
+        <div class="form-group id-group hidden" id="room-code-group">
+          <input 
+            type="text" 
+            id="room-code" 
+            placeholder="Enter 4-character Room Code" 
+            maxlength="4" 
+            autocomplete="off"
+            style="text-transform: uppercase;"
+          >
+        </div>
+        
+        <button type="submit" id="btn-submit" class="btn-primary">Create & Join Room</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <!-- Header -->
+    <header class="game-header">
+      <div class="header-left">
+        <div class="logo-small">DrawSync</div>
+        <div class="player-count">
+          <span id="player-count">0</span> online
+        </div>
+      </div>
+      
+      <div class="header-center">
+        <div id="round-status" class="round-status">Waiting for players...</div>
+        <div id="word-display" class="word-display"></div>
+      </div>
+      
+      <div class="header-right">
+        <!-- Room Code Display and Copy Link Widget -->
+        <div class="room-share-widget" id="room-share-widget">
+          Room: <span id="display-room-code">----</span>
+          <button id="copy-link-btn" title="Copy Room Link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+          <span class="tooltip" id="copy-tooltip">Copied!</span>
+        </div>
+        <div id="timer" class="timer">--</div>
+      </div>
+    </header>
+
+    <!-- Main Game Area -->
+    <div class="game-container">
+      <!-- Players Scoreboard Sidebar -->
+      <div class="scoreboard-section">
+        <div class="scoreboard-header">
+          <h3>Leaderboard</h3>
+        </div>
+        <div id="players-list" class="players-list">
+          <!-- Dynamic Player cards go here -->
+        </div>
+      </div>
+
+      <!-- Canvas Section -->
+      <div class="canvas-section">
+        <div class="canvas-wrapper">
+          <canvas id="game-canvas" width="800" height="600"></canvas>
+          <div id="canvas-overlay" class="canvas-overlay">Waiting for Players to Join</div>
+        </div>
+        
+        <!-- Drawing Controls -->
+        <div id="drawing-controls" class="drawing-controls hidden">
+          <div class="control-group">
+            <label>Brush Size</label>
+            <input type="range" id="brush-size" min="2" max="20" value="4">
+            <span id="brush-size-value">4</span>
+          </div>
+          
+          <div class="control-group">
+            <label>Color</label>
+            <div class="color-palette">
+              <button class="color-btn active" data-color="#000000" style="background: #000000;"></button>
+              <button class="color-btn" data-color="#FFFFFF" style="background: #FFFFFF;"></button>
+              <button class="color-btn" data-color="#FF4444" style="background: #FF4444;"></button>
+              <button class="color-btn" data-color="#44FF44" style="background: #44FF44;"></button>
+              <button class="color-btn" data-color="#4444FF" style="background: #4444FF;"></button>
+              <button class="color-btn" data-color="#FFFF44" style="background: #FFFF44;"></button>
+              <button class="color-btn" data-color="#FF44FF" style="background: #FF44FF;"></button>
+              <button class="color-btn" data-color="#44FFFF" style="background: #44FFFF;"></button>
+            </div>
+          </div>
+          
+          <button id="clear-btn" class="btn-secondary">Clear Canvas</button>
+        </div>
+      </div>
+
+      <!-- Chat Section -->
+      <div class="chat-section">
+        <div class="chat-header">
+          <h3>Chat & Guesses</h3>
+        </div>
+        
+        <div id="chat-messages" class="chat-messages"></div>
+        
+        <form id="chat-form" class="chat-input-wrapper">
+          <input 
+            type="text" 
+            id="chat-input" 
+            placeholder="Type your guess..." 
+            autocomplete="off"
+            maxlength="50"
+          >
+          <button type="submit" class="btn-send">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 8L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
