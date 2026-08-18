@@ -50,7 +50,16 @@
           >
         </div>
         
-        <button type="submit" id="btn-submit" class="btn-primary">Create & Join Room</button>
+        <!-- Create Room Actions -->
+        <div id="create-actions">
+          <button type="submit" id="btn-submit" class="btn-primary">Create Room</button>
+        </div>
+
+        <!-- Join Room Actions (Hidden by default) -->
+        <div id="join-actions" class="hidden" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+          <button type="button" id="btn-join" class="btn-primary">Join Room</button>
+          <button type="button" id="btn-join-random" class="btn-secondary">Join Random Room</button>
+        </div>
       </form>
     </div>
   </div>

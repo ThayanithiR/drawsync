@@ -26,9 +26,19 @@ function setupJoinScreen() {
   const tabJoin = document.getElementById('tab-join');
   const roomCodeGroup = document.getElementById('room-code-group');
   const roomCodeInput = document.getElementById('room-code');
+  
+  const createActions = document.getElementById('create-actions');
+  const joinActions = document.getElementById('join-actions');
   const btnSubmit = document.getElementById('btn-submit');
+  const btnJoin = document.getElementById('btn-join');
+  const btnJoinRandom = document.getElementById('btn-join-random');
   
   let joinMode = 'create'; // 'create' or 'join'
+  
+  // Backend URL helper for API calls
+  const apiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? ''
+    : 'https://drawsync-backend-udfw.onrender.com';
   
   // Check for room code in URL query string (e.g. ?room=ABCD)
   const urlParams = new URLSearchParams(window.location.search);
@@ -42,7 +52,8 @@ function setupJoinScreen() {
     roomCodeInput.value = roomFromUrl.toUpperCase();
     roomCodeInput.disabled = true; // Lock it to URL room code
     roomCodeInput.required = true;
-    btnSubmit.textContent = 'Join Room';
+    createActions.classList.add('hidden');
+    joinActions.classList.remove('hidden');
   }
 
   // Handle Create Tab click
@@ -54,7 +65,8 @@ function setupJoinScreen() {
     roomCodeGroup.classList.add('hidden');
     roomCodeInput.required = false;
     roomCodeInput.value = '';
-    btnSubmit.textContent = 'Create & Join Room';
+    createActions.classList.remove('hidden');
+    joinActions.classList.add('hidden');
   });
 
   // Handle Join Tab click
@@ -65,33 +77,88 @@ function setupJoinScreen() {
     tabJoin.classList.add('active');
     roomCodeGroup.classList.remove('hidden');
     roomCodeInput.required = true;
-    btnSubmit.textContent = 'Join Room';
+    createActions.classList.add('hidden');
+    joinActions.classList.remove('hidden');
   });
 
-  // Form Submission
+  // Helper to handle client initialization
+  function executeJoin(roomId, createMode) {
+    currentRoomId = roomId;
+    initializeGame(roomId, createMode);
+  }
+
+  // Form Submission (handles Create Room)
   joinForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    if (joinMode !== 'create') return;
+    
     const nameInput = document.getElementById('player-name');
     playerName = nameInput.value.trim();
     
     if (playerName) {
+      // Generate a random 4-character room code
       let roomId = '';
-      if (joinMode === 'create') {
-        // Generate a random 4-character room code
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // omit ambiguous chars like O, I, 1, 0
-        for (let i = 0; i < 4; i++) {
-          roomId += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-      } else {
-        roomId = roomCodeInput.value.trim().toUpperCase();
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      for (let i = 0; i < 4; i++) {
+        roomId += chars.charAt(Math.floor(Math.random() * chars.length));
       }
+      executeJoin(roomId, true);
+    }
+  });
+
+  // Join Room button click
+  btnJoin.addEventListener('click', async () => {
+    roomCodeInput.required = true;
+    if (!joinForm.reportValidity()) return;
+    
+    const nameInput = document.getElementById('player-name');
+    playerName = nameInput.value.trim();
+    const roomId = roomCodeInput.value.trim().toUpperCase();
+    
+    if (roomId.length !== 4) {
+      alert('Please enter a valid 4-character Room Code.');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${apiBase}/api/rooms/check/${roomId}`);
+      const data = await response.json();
       
-      if (roomId.length === 4) {
-        currentRoomId = roomId;
-        initializeGame(roomId);
+      if (data.exists) {
+        executeJoin(roomId, false);
       } else {
-        alert('Please enter a valid 4-character Room Code.');
+        alert('Create room first');
       }
+    } catch (err) {
+      console.error('Failed to check room:', err);
+      alert('Server communication error. Please try again.');
+    }
+  });
+
+  // Join Random Room button click
+  btnJoinRandom.addEventListener('click', async () => {
+    roomCodeInput.required = false;
+    if (!joinForm.reportValidity()) {
+      roomCodeInput.required = true;
+      return;
+    }
+    roomCodeInput.required = true;
+    
+    const nameInput = document.getElementById('player-name');
+    playerName = nameInput.value.trim();
+    
+    try {
+      const response = await fetch(`${apiBase}/api/rooms/random`);
+      const data = await response.json();
+      
+      if (data.success && data.roomId) {
+        executeJoin(data.roomId, false);
+      } else {
+        alert('No room available');
+      }
+    } catch (err) {
+      console.error('Failed to get random room:', err);
+      alert('Server communication error. Please try again.');
     }
   });
 }
@@ -99,7 +166,7 @@ function setupJoinScreen() {
 // ============================================
 // GAME INITIALIZATION
 // ============================================
-function initializeGame(roomId) {
+function initializeGame(roomId, create = false) {
   // Connect to socket (Option B: Decoupled Vercel/Render support)
   const socketUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? ''
@@ -121,7 +188,7 @@ function initializeGame(roomId) {
   setupCopyLinkListener();
   
   // Join the room
-  socket.emit('join-game', { name: playerName, roomId: roomId });
+  socket.emit('join-game', { name: playerName, roomId: roomId, create: create });
   
   // Switch to game screen
   document.getElementById('join-screen').classList.remove('active');
@@ -231,6 +298,16 @@ function setupSocketListeners() {
   // Clear canvas
   socket.on('clear-canvas', () => {
     clearCanvas();
+  });
+
+  // Handle server errors (e.g. attempting to join a non-existent room)
+  socket.on('error-message', (data) => {
+    alert(data.text);
+    if (socket && socket.connected) {
+      socket.disconnect();
+    }
+    document.getElementById('game-screen').classList.remove('active');
+    document.getElementById('join-screen').classList.add('active');
   });
 }
 

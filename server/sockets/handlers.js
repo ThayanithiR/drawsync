@@ -12,6 +12,13 @@ function setupSocketHandlers(io) {
       const sanitizedName = escapeHTML(rawName.trim());
       // Default to "LOBBY" if no room is provided, strip space and upper case it
       const roomId = (data.roomId || 'LOBBY').trim().toUpperCase();
+      const shouldCreate = data.create === true;
+      
+      // Strict constraint: Verify room exists unless creating a new one
+      if (!rooms.has(roomId) && !shouldCreate) {
+        socket.emit('error-message', { text: 'Create room first' });
+        return;
+      }
       
       socket.roomId = roomId;
       socket.playerName = sanitizedName;

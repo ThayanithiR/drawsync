@@ -45,7 +45,7 @@ describe('Socket.IO Game Integration Tests', () => {
   test('should allow multiple clients to join a room and receive player-joined updates', (done) => {
     client1 = createClient();
     client1.on('connect', () => {
-      client1.emit('join-game', { name: 'Alice', roomId: 'ROOM_1' });
+      client1.emit('join-game', { name: 'Alice', roomId: 'ROOM_1', create: true });
     });
 
     client1.on('game-state', (state) => {
@@ -55,7 +55,7 @@ describe('Socket.IO Game Integration Tests', () => {
       // Connect second client
       client2 = createClient();
       client2.on('connect', () => {
-        client2.emit('join-game', { name: 'Bob', roomId: 'ROOM_1' });
+        client2.emit('join-game', { name: 'Bob', roomId: 'ROOM_1', create: true });
       });
       
       client1.on('player-joined', (data) => {
@@ -76,15 +76,15 @@ describe('Socket.IO Game Integration Tests', () => {
     let client2Connected = false;
     let client3Connected = false;
 
-    // Connect client 1 & 2 to ROOM_A, client 3 to ROOM_B
+    // Connect client 1 & 2 to ROOM_A, client 3 to ROOM_B with create: true
     client1.on('connect', () => {
-      client1.emit('join-game', { name: 'Alice', roomId: 'ROOM_A' });
+      client1.emit('join-game', { name: 'Alice', roomId: 'ROOM_A', create: true });
     });
     client2.on('connect', () => {
-      client2.emit('join-game', { name: 'Bob', roomId: 'ROOM_A' });
+      client2.emit('join-game', { name: 'Bob', roomId: 'ROOM_A', create: true });
     });
     client3.on('connect', () => {
-      client3.emit('join-game', { name: 'Charlie', roomId: 'ROOM_B' });
+      client3.emit('join-game', { name: 'Charlie', roomId: 'ROOM_B', create: true });
     });
 
     // Wait until game states are initialised
@@ -124,5 +124,17 @@ describe('Socket.IO Game Integration Tests', () => {
     client1.on('game-state', checkReady);
     client2.on('game-state', checkReady);
     client3.on('game-state', checkReady);
+  });
+
+  test('should reject join-game if room does not exist and create is false', (done) => {
+    client1 = createClient();
+    client1.on('connect', () => {
+      client1.emit('join-game', { name: 'Alice', roomId: 'ROOM_X', create: false });
+    });
+
+    client1.on('error-message', (data) => {
+      expect(data.text).toBe('Create room first');
+      done();
+    });
   });
 });
