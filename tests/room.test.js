@@ -88,4 +88,17 @@ describe('Room State Management', () => {
     expect(result.player.name).toBe('Alice');
     expect(rooms.has('ROOM_A')).toBe(false); // Room deleted since it became empty
   });
+
+  test('should generate correct word hint strings with blanks and revealed letters', () => {
+    const { getHintString } = require('../server/game/logic');
+    
+    // Initial masked hint
+    expect(getHintString('APPLE', [])).toBe('_ _ _ _ _');
+    
+    // Hint with revealed indices
+    expect(getHintString('APPLE', [1, 3])).toBe('_ P _ L _');
+    
+    // Words with spaces
+    expect(getHintString('ICE CREAM', [0, 4])).toBe('I _ _   C _ _ _ _');
+  });
 });

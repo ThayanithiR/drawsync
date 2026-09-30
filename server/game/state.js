@@ -27,6 +27,8 @@ function getOrCreateRoom(roomId) {
       roundTime: 60,
       isRoundActive: false,
       roundTimer: null,
+      hintTimers: [],
+      revealedIndices: [],
       correctGuessers: [],
       drawingHistory: []
     });
@@ -41,6 +43,10 @@ function deleteRoom(roomId) {
     if (room.roundTimer) {
       clearTimeout(room.roundTimer);
       room.roundTimer = null;
+    }
+    if (room.hintTimers && room.hintTimers.length > 0) {
+      room.hintTimers.forEach(t => clearTimeout(t));
+      room.hintTimers = [];
     }
     rooms.delete(roomId);
   }
@@ -125,10 +131,15 @@ function resetRound(roomId) {
     room.currentWord = null;
     room.correctGuessers = [];
     room.drawingHistory = [];
+    room.revealedIndices = [];
     room.players.forEach(p => p.hasGuessed = false);
     if (room.roundTimer) {
       clearTimeout(room.roundTimer);
       room.roundTimer = null;
+    }
+    if (room.hintTimers && room.hintTimers.length > 0) {
+      room.hintTimers.forEach(t => clearTimeout(t));
+      room.hintTimers = [];
     }
   }
 }

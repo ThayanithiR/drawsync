@@ -17,6 +17,48 @@ function escapeHTML(str) {
   });
 }
 
+// Generate masked word hint string (e.g. "_ _ _ _ _")
+function getHintString(word, revealedIndices = []) {
+  if (!word) return '';
+  return word.split('').map((char, index) => {
+    if (char === ' ') return ' ';
+    if (!/[a-zA-Z0-9]/.test(char)) return char; // punctuation
+    if (revealedIndices.includes(index)) return char.toUpperCase();
+    return '_';
+  }).join(' ');
+}
+
+// Reveal a random letter hint to room
+function revealHint(io, roomId) {
+  const room = rooms.get(roomId);
+  if (!room || !room.isRoundActive || !room.currentWord) return;
+
+  const word = room.currentWord;
+  const unrevealed = [];
+  
+  for (let i = 0; i < word.length; i++) {
+    if (/[a-zA-Z0-9]/.test(word[i]) && !room.revealedIndices.includes(i)) {
+      unrevealed.push(i);
+    }
+  }
+
+  // Only reveal if there are still unrevealed letters remaining (leave at least 1-2 hidden)
+  if (unrevealed.length > 1) {
+    const randomIndex = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    room.revealedIndices.push(randomIndex);
+
+    const hintStr = getHintString(word, room.revealedIndices);
+    logger.info(`Room ${roomId}: Revealing hint letter at index ${randomIndex}. Current hint: ${hintStr}`);
+
+    // Broadcast hint to room (client drawer handles ignoring or showing it)
+    io.to(roomId).emit('word-hint', {
+      hint: hintStr,
+      length: word.replace(/\s+/g, '').length,
+      revealedLetter: word[randomIndex].toUpperCase()
+    });
+  }
+}
+
 function startNewRound(io, roomId) {
   const room = getOrCreateRoom(roomId);
   
@@ -24,6 +66,10 @@ function startNewRound(io, roomId) {
   if (room.roundTimer) {
     clearTimeout(room.roundTimer);
     room.roundTimer = null;
+  }
+  if (room.hintTimers && room.hintTimers.length > 0) {
+    room.hintTimers.forEach(t => clearTimeout(t));
+    room.hintTimers = [];
   }
   
   resetRound(roomId);
@@ -46,6 +92,7 @@ function startNewRound(io, roomId) {
   room.currentWord = getRandomWord();
   room.isRoundActive = true;
   room.roundStartTime = Date.now();
+  room.revealedIndices = [];
   
   const drawer = room.players.find(p => p.id === nextDrawer);
   const drawerName = drawer ? drawer.name : 'Unknown';
@@ -61,6 +108,25 @@ function startNewRound(io, roomId) {
   io.to(nextDrawer).emit('your-word', {
     word: room.currentWord
   });
+
+  // Broadcast initial masked hint (blanks) to room
+  const initialHint = getHintString(room.currentWord, []);
+  const letterCount = room.currentWord.replace(/\s+/g, '').length;
+  io.to(roomId).emit('word-hint', {
+    hint: initialHint,
+    length: letterCount
+  });
+
+  // Schedule timed hints (Hint 1 at ~25s, Hint 2 at ~45s)
+  const hint1Timer = setTimeout(() => {
+    revealHint(io, roomId);
+  }, 22000); // 22 seconds into round
+
+  const hint2Timer = setTimeout(() => {
+    revealHint(io, roomId);
+  }, 42000); // 42 seconds into round
+
+  room.hintTimers = [hint1Timer, hint2Timer];
   
   // Broadcast initial scoreboard for the round (reset guess indicator)
   io.to(roomId).emit('scoreboard-update', {
@@ -188,6 +254,7 @@ function checkGuess(guess, socketId, io) {
 
 module.exports = {
   escapeHTML,
+  getHintString,
   startNewRound,
   endRound,
   checkGuess

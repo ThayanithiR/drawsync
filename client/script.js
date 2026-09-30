@@ -409,7 +409,21 @@ function setupSocketListeners() {
   
   // Receive word (only for drawer)
   socket.on('your-word', (data) => {
-    document.getElementById('word-display').textContent = data.word.toUpperCase();
+    const wordDisplay = document.getElementById('word-display');
+    if (wordDisplay) {
+      wordDisplay.textContent = data.word.toUpperCase();
+    }
+  });
+
+  // Receive word hint (blanks and revealed letters for guessers)
+  socket.on('word-hint', (data) => {
+    if (!isPlayerDrawer) {
+      const wordDisplay = document.getElementById('word-display');
+      if (wordDisplay) {
+        const letterCountText = data.length ? ` (${data.length})` : '';
+        wordDisplay.textContent = `${data.hint}${letterCountText}`;
+      }
+    }
   });
   
   // Round end

@@ -39,9 +39,19 @@ function setupSocketHandlers(io) {
         roomId: roomId
       });
       
-      // Sync drawing history to late joiners if round is active
-      if (room.isRoundActive && room.drawingHistory.length > 0) {
-        socket.emit('drawing-history', room.drawingHistory);
+      // Sync drawing history and current word hint to late joiners if round is active
+      if (room.isRoundActive) {
+        if (room.drawingHistory.length > 0) {
+          socket.emit('drawing-history', room.drawingHistory);
+        }
+        if (socket.id === room.currentDrawer) {
+          socket.emit('your-word', { word: room.currentWord });
+        } else if (room.currentWord) {
+          const { getHintString } = require('../game/logic');
+          const hintStr = getHintString(room.currentWord, room.revealedIndices || []);
+          const letterCount = room.currentWord.replace(/\s+/g, '').length;
+          socket.emit('word-hint', { hint: hintStr, length: letterCount });
+        }
       }
       
       // Broadcast player joining to others in room
