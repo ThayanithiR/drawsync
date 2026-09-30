@@ -68,117 +68,57 @@ body::before {
    ============================================ */
 
 #join-screen {
-  background-color: #134982;
-  background-image: url("data:image/svg+xml,%3Csvg width='140' height='140' viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%230e3869' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 25 L35 15 L25 40 Z'/%3E%3Ccircle cx='95' cy='25' r='10'/%3E%3Cpath d='M90 23 A2 2 0 0 1 94 23 M96 23 A2 2 0 0 1 100 23 M91 29 Q95 33 99 29'/%3E%3Cpath d='M20 85 L35 75 L50 85 L50 105 L20 105 Z M30 105 L30 90 L40 90 L40 105'/%3E%3Cpath d='M80 80 Q95 65 110 80 Q120 90 105 100 L85 100 Z'/%3E%3Cpath d='M70 15 L60 30 L75 30 Z'/%3E%3Cpath d='M10 120 Q25 110 40 120'/%3E%3Cpath d='M85 120 L95 110 L105 120 L115 110'/%3E%3Cpath d='M115 45 L125 55 M125 45 L115 55'/%3E%3Cpath d='M55 55 A6 6 0 1 0 55 67 A6 6 0 1 0 55 55 M49 61 L43 61 M61 61 L67 61'/%3E%3C/g%3E%3C/svg%3E");
+  background-color: #0d1633;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(0, 217, 255, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255, 0, 110, 0.12) 0%, transparent 40%),
+    url("data:image/svg+xml,%3Csvg width='140' height='140' viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%231b264f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 25 L35 15 L25 40 Z'/%3E%3Ccircle cx='95' cy='25' r='10'/%3E%3Cpath d='M90 23 A2 2 0 0 1 94 23 M96 23 A2 2 0 0 1 100 23 M91 29 Q95 33 99 29'/%3E%3Cpath d='M20 85 L35 75 L50 85 L50 105 L20 105 Z M30 105 L30 90 L40 90 L40 105'/%3E%3Cpath d='M80 80 Q95 65 110 80 Q120 90 105 100 L85 100 Z'/%3E%3Cpath d='M70 15 L60 30 L75 30 Z'/%3E%3Cpath d='M10 120 Q25 110 40 120'/%3E%3Cpath d='M85 120 L95 110 L105 120 L115 110'/%3E%3Cpath d='M115 45 L125 55 M125 45 L115 55'/%3E%3Cpath d='M55 55 A6 6 0 1 0 55 67 A6 6 0 1 0 55 55 M49 61 L43 61 M61 61 L67 61'/%3E%3C/g%3E%3C/svg%3E");
   background-repeat: repeat;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   padding: 1.5rem;
   overflow-y: auto;
-  gap: 16px;
+  gap: 6px;
 }
 
-/* Skribbl Header & Logo */
-.skribbl-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+/* DrawSync Logo & Context Header */
+.logo {
+  text-align: center;
+  margin-bottom: 0.25rem;
   user-select: none;
 }
 
-.skribbl-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Comic Sans MS', 'Chalkboard SE', 'Outfit', cursive, sans-serif;
-  font-size: 4rem;
-  font-weight: 900;
-  line-height: 1;
-  position: relative;
-  letter-spacing: -2px;
+.logo-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 0.5rem;
+  color: var(--accent-primary);
+  animation: float 3s ease-in-out infinite;
 }
 
-.logo-char {
-  display: inline-block;
-  -webkit-text-stroke: 3.5px #000000;
-  paint-order: stroke fill;
-  text-shadow: 4px 4px 0 #000000;
-  transition: transform 0.15s;
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
 }
 
-.logo-char:hover {
-  transform: translateY(-4px) scale(1.1);
+.logo h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
+  line-height: 1.1;
 }
 
-.letter-s { color: #FF3B30; }
-.letter-k { color: #FF9500; }
-.letter-r { color: #FFCC00; }
-.letter-i { color: #34C759; }
-.letter-b1 { color: #00C7BE; }
-.letter-b2 { color: #007AFF; }
-.letter-l { color: #AF52DE; }
-.letter-dot { color: #000000; -webkit-text-stroke: 1.5px #000; }
-.letter-io { color: #FFFFFF; }
-.letter-ex { color: #FF9500; }
-
-.skribbl-pencil {
-  width: 48px;
-  height: 48px;
-  margin-left: 2px;
-  margin-top: -15px;
-  transform: rotate(-15deg);
-  filter: drop-shadow(3px 3px 0 #000000);
-}
-
-/* 8 Mini Avatar Banner under Logo */
-.skribbl-avatar-banner {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-}
-
-.mini-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50% 50% 45% 45%;
-  border: 2.5px solid #000000;
-  position: relative;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
-}
-
-.mini-avatar::after {
-  content: '';
-  position: absolute;
-  top: 9px;
-  left: 6px;
-  width: 16px;
-  height: 12px;
-  background: 
-    radial-gradient(circle at 3px 3px, #000 2px, transparent 2px),
-    radial-gradient(circle at 13px 3px, #000 2px, transparent 2px);
-}
-
-.avatar-red { background: #FF3B30; }
-.avatar-orange { background: #FF9500; }
-.avatar-yellow { background: #FFCC00; }
-.avatar-green { background: #34C759; }
-.avatar-cyan { background: #30B0C7; }
-.avatar-blue { background: #007AFF; }
-.avatar-purple { background: #AF52DE; }
-.avatar-pink { background: #FF2D55; }
-
-.avatar-blue.crown::before {
-  content: '👑';
-  position: absolute;
-  top: -14px;
-  left: 4px;
-  font-size: 14px;
-  transform: rotate(-15deg);
+.tagline {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  font-weight: 300;
+  text-align: center;
 }
 
 /* Skribbl Blue Card */
