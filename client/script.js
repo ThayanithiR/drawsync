@@ -20,146 +20,276 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 // JOIN SCREEN & ROOM MANAGEMENT
 // ============================================
+// ============================================
+// AVATAR CUSTOMIZER & SKRIBBL.IO STATE
+// ============================================
+const AVATAR_COLORS = [
+  { id: 'purple-stripes', bg: '#AF52DE', stripe: true },
+  { id: 'green', bg: '#34C759', stripe: false },
+  { id: 'yellow', bg: '#FFCC00', stripe: false },
+  { id: 'orange', bg: '#FF9500', stripe: false },
+  { id: 'red', bg: '#FF3B30', stripe: false },
+  { id: 'blue', bg: '#007AFF', stripe: false },
+  { id: 'pink', bg: '#FF2D55', stripe: false },
+  { id: 'cyan', bg: '#30B0C7', stripe: false }
+];
+
+let avatarColorIdx = 0; // Default purple with stripes like the skribbl.io screenshot
+let avatarEyesIdx = 0;  // Default stitched eyes
+let avatarMouthIdx = 0; // Default stitched mouth
+
+function renderAvatarSVG(colorIdx, eyesIdx, mouthIdx) {
+  const col = AVATAR_COLORS[colorIdx % AVATAR_COLORS.length];
+  
+  let defs = '';
+  let fillAttr = col.bg;
+  if (col.stripe) {
+    defs = `
+      <defs>
+        <pattern id="avatar-stripes" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+          <line x1="0" y1="0" x2="0" y2="10" stroke="#8A2BE2" stroke-width="4" />
+          <line x1="0" y1="0" x2="0" y2="10" stroke="#D175FF" stroke-width="2" />
+        </pattern>
+      </defs>`;
+    fillAttr = 'url(#avatar-stripes)';
+  }
+
+  // Eyes SVG paths
+  let eyesSVG = '';
+  switch (eyesIdx % 6) {
+    case 0: // Stitched / cross eyes
+      eyesSVG = `
+        <line x1="36" y1="42" x2="48" y2="42" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="42" y1="38" x2="42" y2="46" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+        <line x1="62" y1="42" x2="74" y2="42" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="68" y1="38" x2="68" y2="46" stroke="#000" stroke-width="3" stroke-linecap="round"/>`;
+      break;
+    case 1: // Normal dots
+      eyesSVG = `
+        <ellipse cx="42" cy="42" rx="4" ry="5" fill="#000"/>
+        <ellipse cx="68" cy="42" rx="4" ry="5" fill="#000"/>`;
+      break;
+    case 2: // Happy / curved ^ ^
+      eyesSVG = `
+        <path d="M36 44 Q42 37 48 44" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        <path d="M62 44 Q68 37 74 44" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none"/>`;
+      break;
+    case 3: // Angry eyes \ /
+      eyesSVG = `
+        <line x1="36" y1="38" x2="48" y2="44" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="74" y1="38" x2="62" y2="44" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="42" cy="45" r="2.5" fill="#000"/>
+        <circle cx="68" cy="45" r="2.5" fill="#000"/>`;
+      break;
+    case 4: // Cyclops with crown
+      eyesSVG = `
+        <circle cx="55" cy="42" r="9" fill="#fff" stroke="#000" stroke-width="3"/>
+        <circle cx="55" cy="42" r="4.5" fill="#000"/>
+        <polygon points="45,18 49,26 55,16 61,26 65,18 63,28 47,28" fill="#FFD700" stroke="#000" stroke-width="2"/>`;
+      break;
+    case 5: // Cool sunglasses
+      eyesSVG = `
+        <polygon points="34,38 50,38 47,49 37,49" fill="#000"/>
+        <polygon points="60,38 76,38 73,49 63,49" fill="#000"/>
+        <line x1="50" y1="41" x2="60" y2="41" stroke="#000" stroke-width="3"/>`;
+      break;
+  }
+
+  // Mouth SVG paths
+  let mouthSVG = '';
+  switch (mouthIdx % 6) {
+    case 0: // Stitched mouth
+      mouthSVG = `
+        <line x1="40" y1="62" x2="70" y2="62" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="45" y1="58" x2="45" y2="66" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="50" y1="58" x2="50" y2="66" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="55" y1="58" x2="55" y2="66" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="60" y1="58" x2="60" y2="66" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        <line x1="65" y1="58" x2="65" y2="66" stroke="#000" stroke-width="2" stroke-linecap="round"/>`;
+      break;
+    case 1: // Smile
+      mouthSVG = `
+        <path d="M42 58 Q55 70 68 58" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none"/>`;
+      break;
+    case 2: // Wavy mouth
+      mouthSVG = `
+        <path d="M42 62 Q48 56 55 62 T68 62" stroke="#000" stroke-width="3" stroke-linecap="round" fill="none"/>`;
+      break;
+    case 3: // Open O mouth
+      mouthSVG = `
+        <ellipse cx="55" cy="62" rx="6" ry="8" fill="#4a0e4e" stroke="#000" stroke-width="3"/>`;
+      break;
+    case 4: // Tongue out
+      mouthSVG = `
+        <path d="M43 59 Q55 64 67 59" stroke="#000" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <path d="M51 61 Q55 72 59 61 Z" fill="#FF3B30" stroke="#000" stroke-width="2"/>`;
+      break;
+    case 5: // Sad mouth
+      mouthSVG = `
+        <path d="M43 66 Q55 56 67 66" stroke="#000" stroke-width="3.5" stroke-linecap="round" fill="none"/>`;
+      break;
+  }
+
+  return `
+    <svg viewBox="0 0 110 110" width="110" height="110" xmlns="http://www.w3.org/2000/svg">
+      ${defs}
+      <!-- Shoulders / Torso -->
+      <path d="M22 100 Q26 80 55 80 Q84 80 88 100 Z" fill="${col.bg}" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+      <!-- Head -->
+      <circle cx="55" cy="50" r="28" fill="${col.bg}" stroke="#000" stroke-width="4.5"/>
+      <!-- Pattern overlay if striped -->
+      ${col.stripe ? `<circle cx="55" cy="50" r="27" fill="${fillAttr}" />` : ''}
+      ${col.stripe ? `<path d="M22 100 Q26 80 55 80 Q84 80 88 100 Z" fill="${fillAttr}" />` : ''}
+      <!-- Head border overlay to keep sharp outline -->
+      <circle cx="55" cy="50" r="28" fill="none" stroke="#000" stroke-width="4.5"/>
+      <path d="M22 100 Q26 80 55 80 Q84 80 88 100 Z" fill="none" stroke="#000" stroke-width="4.5" stroke-linejoin="round"/>
+      <!-- Eyes -->
+      ${eyesSVG}
+      <!-- Mouth -->
+      ${mouthSVG}
+    </svg>`;
+}
+
+// ============================================
+// JOIN SCREEN & ROOM MANAGEMENT
+// ============================================
 function setupJoinScreen() {
   const joinForm = document.getElementById('join-form');
-  const tabCreate = document.getElementById('tab-create');
-  const tabJoin = document.getElementById('tab-join');
-  const roomCodeGroup = document.getElementById('room-code-group');
+  const playerNameInput = document.getElementById('player-name');
   const roomCodeInput = document.getElementById('room-code');
-  
-  const createActions = document.getElementById('create-actions');
-  const joinActions = document.getElementById('join-actions');
-  const btnSubmit = document.getElementById('btn-submit');
-  const btnJoin = document.getElementById('btn-join');
-  const btnJoinRandom = document.getElementById('btn-join-random');
-  
-  let joinMode = 'create'; // 'create' or 'join'
-  
+  const avatarPreview = document.getElementById('avatar-preview');
+  const btnCreatePrivate = document.getElementById('btn-create-private');
+  const btnDice = document.getElementById('btn-dice');
+
   // Backend URL helper for API calls
   const apiBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? ''
     : 'https://drawsync-backend-udfw.onrender.com';
-  
-  // Check for room code in URL query string (e.g. ?room=ABCD)
+
+  // Render initial avatar
+  function updateAvatar() {
+    if (avatarPreview) {
+      avatarPreview.innerHTML = renderAvatarSVG(avatarColorIdx, avatarEyesIdx, avatarMouthIdx);
+    }
+  }
+  updateAvatar();
+
+  // Avatar Arrow Navigation
+  document.getElementById('arrow-color-left')?.addEventListener('click', () => {
+    avatarColorIdx = (avatarColorIdx - 1 + AVATAR_COLORS.length) % AVATAR_COLORS.length;
+    updateAvatar();
+  });
+  document.getElementById('arrow-color-right')?.addEventListener('click', () => {
+    avatarColorIdx = (avatarColorIdx + 1) % AVATAR_COLORS.length;
+    updateAvatar();
+  });
+
+  document.getElementById('arrow-eyes-left')?.addEventListener('click', () => {
+    avatarEyesIdx = (avatarEyesIdx - 1 + 6) % 6;
+    updateAvatar();
+  });
+  document.getElementById('arrow-eyes-right')?.addEventListener('click', () => {
+    avatarEyesIdx = (avatarEyesIdx + 1) % 6;
+    updateAvatar();
+  });
+
+  document.getElementById('arrow-mouth-left')?.addEventListener('click', () => {
+    avatarMouthIdx = (avatarMouthIdx - 1 + 6) % 6;
+    updateAvatar();
+  });
+  document.getElementById('arrow-mouth-right')?.addEventListener('click', () => {
+    avatarMouthIdx = (avatarMouthIdx + 1) % 6;
+    updateAvatar();
+  });
+
+  // Dice randomize
+  btnDice?.addEventListener('click', () => {
+    avatarColorIdx = Math.floor(Math.random() * AVATAR_COLORS.length);
+    avatarEyesIdx = Math.floor(Math.random() * 6);
+    avatarMouthIdx = Math.floor(Math.random() * 6);
+    updateAvatar();
+  });
+
+  // Check URL query parameters (e.g. ?room=ABCD)
+  const btnPlay = document.getElementById('btn-play');
   const urlParams = new URLSearchParams(window.location.search);
   const roomFromUrl = urlParams.get('room');
-  
-  if (roomFromUrl) {
-    joinMode = 'join';
-    tabCreate.classList.remove('active');
-    tabJoin.classList.add('active');
-    roomCodeGroup.classList.remove('hidden');
+  if (roomFromUrl && roomCodeInput) {
     roomCodeInput.value = roomFromUrl.toUpperCase();
-    roomCodeInput.disabled = true; // Lock it to URL room code
-    roomCodeInput.required = true;
-    createActions.classList.add('hidden');
-    joinActions.classList.remove('hidden');
+    if (btnPlay) btnPlay.textContent = 'Join Room';
   }
 
-  // Handle Create Tab click
-  tabCreate.addEventListener('click', () => {
-    if (roomFromUrl) return; // Disallow tab switching if room is locked from URL
-    joinMode = 'create';
-    tabJoin.classList.remove('active');
-    tabCreate.classList.add('active');
-    roomCodeGroup.classList.add('hidden');
-    roomCodeInput.required = false;
-    roomCodeInput.value = '';
-    createActions.classList.remove('hidden');
-    joinActions.classList.add('hidden');
+  // Dynamically update button label if room code is typed
+  roomCodeInput?.addEventListener('input', () => {
+    if (btnPlay) {
+      if (roomCodeInput.value.trim().length > 0) {
+        btnPlay.textContent = 'Join Room';
+      } else {
+        btnPlay.textContent = 'Play!';
+      }
+    }
   });
 
-  // Handle Join Tab click
-  tabJoin.addEventListener('click', () => {
-    if (roomFromUrl) return;
-    joinMode = 'join';
-    tabCreate.classList.remove('active');
-    tabJoin.classList.add('active');
-    roomCodeGroup.classList.remove('hidden');
-    roomCodeInput.required = true;
-    createActions.classList.add('hidden');
-    joinActions.classList.remove('hidden');
-  });
-
-  // Helper to handle client initialization
+  // Execution helper
   function executeJoin(roomId, createMode) {
     currentRoomId = roomId;
     initializeGame(roomId, createMode);
   }
 
-  // Form Submission (handles Create Room)
-  joinForm.addEventListener('submit', (e) => {
+  // Form Submit (Play! Button)
+  joinForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (joinMode !== 'create') return;
-    
-    const nameInput = document.getElementById('player-name');
-    playerName = nameInput.value.trim();
-    
-    if (playerName) {
-      // Generate a random 4-character room code
-      let roomId = '';
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      for (let i = 0; i < 4; i++) {
-        roomId += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      executeJoin(roomId, true);
-    }
-  });
-
-  // Join Room button click
-  btnJoin.addEventListener('click', async () => {
-    roomCodeInput.required = true;
     if (!joinForm.reportValidity()) return;
-    
-    const nameInput = document.getElementById('player-name');
-    playerName = nameInput.value.trim();
-    const roomId = roomCodeInput.value.trim().toUpperCase();
-    
-    if (roomId.length !== 4) {
-      alert('Please enter a valid 4-character Room Code.');
-      return;
-    }
-    
-    try {
-      const response = await fetch(`${apiBase}/api/rooms/check/${roomId}`);
-      const data = await response.json();
-      
-      if (data.exists) {
-        executeJoin(roomId, false);
-      } else {
-        alert('Create room first');
+
+    playerName = playerNameInput.value.trim() || 'Player';
+    const enteredRoom = roomCodeInput ? roomCodeInput.value.trim().toUpperCase() : '';
+
+    if (enteredRoom) {
+      // User entered a room code -> check if it exists
+      try {
+        const response = await fetch(`${apiBase}/api/rooms/check/${enteredRoom}`);
+        const data = await response.json();
+
+        if (data.exists) {
+          executeJoin(enteredRoom, false);
+        } else {
+          alert('Create room first');
+        }
+      } catch (err) {
+        console.error('Failed to check room existence:', err);
+        alert('Server communication error. Please try again.');
       }
-    } catch (err) {
-      console.error('Failed to check room:', err);
-      alert('Server communication error. Please try again.');
+    } else {
+      // User left room code empty -> join a random existing room
+      try {
+        const response = await fetch(`${apiBase}/api/rooms/random`);
+        const data = await response.json();
+
+        if (data.success && data.roomId) {
+          executeJoin(data.roomId, false);
+        } else {
+          alert('No room available');
+        }
+      } catch (err) {
+        console.error('Failed to get random room:', err);
+        alert('Server communication error. Please try again.');
+      }
     }
   });
 
-  // Join Random Room button click
-  btnJoinRandom.addEventListener('click', async () => {
-    roomCodeInput.required = false;
-    if (!joinForm.reportValidity()) {
-      roomCodeInput.required = true;
-      return;
-    }
-    roomCodeInput.required = true;
+  // Create Private Room Button
+  btnCreatePrivate?.addEventListener('click', () => {
+    if (!joinForm.reportValidity()) return;
+
+    playerName = playerNameInput.value.trim() || 'Player';
     
-    const nameInput = document.getElementById('player-name');
-    playerName = nameInput.value.trim();
-    
-    try {
-      const response = await fetch(`${apiBase}/api/rooms/random`);
-      const data = await response.json();
-      
-      if (data.success && data.roomId) {
-        executeJoin(data.roomId, false);
-      } else {
-        alert('No room available');
-      }
-    } catch (err) {
-      console.error('Failed to get random room:', err);
-      alert('Server communication error. Please try again.');
+    // Generate a random 4-character room code
+    let roomId = '';
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    for (let i = 0; i < 4; i++) {
+      roomId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
+    executeJoin(roomId, true);
   });
 }
 
@@ -187,8 +317,13 @@ function initializeGame(roomId, create = false) {
   setupChatListeners();
   setupCopyLinkListener();
   
-  // Join the room
-  socket.emit('join-game', { name: playerName, roomId: roomId, create: create });
+  // Join the room with player details and customized avatar
+  socket.emit('join-game', { 
+    name: playerName, 
+    roomId: roomId, 
+    create: create,
+    avatar: { color: avatarColorIdx, eyes: avatarEyesIdx, mouth: avatarMouthIdx }
+  });
   
   // Switch to game screen
   document.getElementById('join-screen').classList.remove('active');

@@ -9,26 +9,39 @@
 <body>
   <!-- Join Screen -->
   <div id="join-screen" class="screen active">
-    <div class="join-container">
-      <div class="logo">
-        <div class="logo-icon">
-          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 80 L50 20 L80 80" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="50" cy="50" r="5" fill="currentColor"/>
+    <!-- Skribbl Header & Logo -->
+    <div class="skribbl-header">
+      <div class="skribbl-logo">
+        <span class="logo-char letter-s">s</span><span class="logo-char letter-k">k</span><span class="logo-char letter-r">r</span><span class="logo-char letter-i">i</span><span class="logo-char letter-b1">b</span><span class="logo-char letter-b2">b</span><span class="logo-char letter-l">l</span><span class="logo-char letter-dot">.</span><span class="logo-char letter-io">io</span><span class="logo-char letter-ex">!</span>
+        <div class="skribbl-pencil">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 35 L12 33 L32 13 L27 8 L7 28 Z" fill="#FFA500" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M5 35 L9 31 L6 31 Z" fill="#FFE4B5" stroke="#000" stroke-width="1.5"/>
+            <path d="M5 35 L7 33 L6 34 Z" fill="#000"/>
+            <path d="M27 8 L32 13 L36 9 L31 4 Z" fill="#FF69B4" stroke="#000" stroke-width="2.5"/>
+            <line x1="12" y1="33" x2="32" y2="13" stroke="#D97706" stroke-width="2"/>
+            <line x1="9" y1="26" x2="29" y2="6" stroke="#D97706" stroke-width="1.5"/>
           </svg>
         </div>
-        <h1>DrawSync</h1>
       </div>
-      <p class="tagline">Draw, guess, and sync in isolated real-time lobbies</p>
-      
-      <!-- Lobby Join Mode Tabs -->
-      <div class="lobby-tabs">
-        <button id="tab-create" class="tab-btn active">Create Room</button>
-        <button id="tab-join" class="tab-btn">Join Room</button>
+      <!-- Line of 8 cartoon avatars from screenshot -->
+      <div class="skribbl-avatar-banner">
+        <div class="mini-avatar avatar-red"></div>
+        <div class="mini-avatar avatar-orange"></div>
+        <div class="mini-avatar avatar-yellow"></div>
+        <div class="mini-avatar avatar-green"></div>
+        <div class="mini-avatar avatar-cyan"></div>
+        <div class="mini-avatar avatar-blue crown"></div>
+        <div class="mini-avatar avatar-purple"></div>
+        <div class="mini-avatar avatar-pink"></div>
       </div>
+    </div>
 
+    <!-- Main Skribbl Card Container -->
+    <div class="skribbl-card">
       <form id="join-form">
-        <div class="form-group">
+        <!-- Top Row: Name Input & Language Select -->
+        <div class="skribbl-row-top">
           <input 
             type="text" 
             id="player-name" 
@@ -36,30 +49,65 @@
             maxlength="15" 
             required
             autocomplete="off"
+            value="hi"
           >
+          <select id="language-select" class="skribbl-select">
+            <option value="en" selected>English</option>
+            <option value="de">German</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="it">Italian</option>
+          </select>
         </div>
-        
-        <div class="form-group id-group hidden" id="room-code-group">
+
+        <!-- Room Code Input -->
+        <div class="skribbl-row-code">
           <input 
             type="text" 
             id="room-code" 
-            placeholder="Enter 4-character Room Code" 
-            maxlength="4" 
+            placeholder="Room Code (Leave blank for random)" 
+            maxlength="6" 
             autocomplete="off"
             style="text-transform: uppercase;"
           >
         </div>
-        
-        <!-- Create Room Actions -->
-        <div id="create-actions">
-          <button type="submit" id="btn-submit" class="btn-primary">Create Room</button>
+
+        <!-- Avatar Customizer Box -->
+        <div class="avatar-customizer-box">
+          <!-- Left Arrow Buttons (Color, Eyes, Mouth) -->
+          <div class="arrow-column left-arrows">
+            <button type="button" class="arrow-btn" id="arrow-color-left" title="Previous Color">&lt;</button>
+            <button type="button" class="arrow-btn" id="arrow-eyes-left" title="Previous Eyes">&lt;</button>
+            <button type="button" class="arrow-btn" id="arrow-mouth-left" title="Previous Mouth">&lt;</button>
+          </div>
+
+          <!-- Central Character Canvas / SVG Preview -->
+          <div class="avatar-display-area">
+            <div id="avatar-preview" class="avatar-character">
+              <!-- SVG dynamically rendered here -->
+            </div>
+          </div>
+
+          <!-- Right Arrow Buttons (Color, Eyes, Mouth) -->
+          <div class="arrow-column right-arrows">
+            <button type="button" class="arrow-btn" id="arrow-color-right" title="Next Color">&gt;</button>
+            <button type="button" class="arrow-btn" id="arrow-eyes-right" title="Next Eyes">&gt;</button>
+            <button type="button" class="arrow-btn" id="arrow-mouth-right" title="Next Mouth">&gt;</button>
+          </div>
+
+          <!-- Randomize Dice Icon Button -->
+          <button type="button" id="btn-dice" class="dice-btn" title="Randomize Avatar">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+            </svg>
+          </button>
         </div>
 
-        <!-- Join Room Actions (Hidden by default) -->
-        <div id="join-actions" class="hidden" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
-          <button type="button" id="btn-join" class="btn-primary">Join Room</button>
-          <button type="button" id="btn-join-random" class="btn-secondary">Join Random Room</button>
-        </div>
+        <!-- Big Green Play! Button -->
+        <button type="submit" id="btn-play" class="btn-skribbl-play">Play!</button>
+
+        <!-- Blue Create Private Room Button -->
+        <button type="button" id="btn-create-private" class="btn-skribbl-private">Create Private Room</button>
       </form>
     </div>
   </div>
