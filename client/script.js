@@ -245,22 +245,10 @@ function setupJoinScreen() {
     const enteredRoom = roomCodeInput ? roomCodeInput.value.trim().toUpperCase() : '';
 
     if (enteredRoom) {
-      // User entered a room code -> check if it exists
-      try {
-        const response = await fetch(`${apiBase}/api/rooms/check/${enteredRoom}`);
-        const data = await response.json();
-
-        if (data.exists) {
-          executeJoin(enteredRoom, false);
-        } else {
-          alert('Create room first');
-        }
-      } catch (err) {
-        console.error('Failed to check room existence:', err);
-        alert('Server communication error. Please try again.');
-      }
+      // User entered a room code -> join directly (server validates existence)
+      executeJoin(enteredRoom, false);
     } else {
-      // User left room code empty -> join a random existing room
+      // User left room code empty -> try to find a random room, fallback to creating one
       try {
         const response = await fetch(`${apiBase}/api/rooms/random`);
         const data = await response.json();
@@ -268,11 +256,23 @@ function setupJoinScreen() {
         if (data.success && data.roomId) {
           executeJoin(data.roomId, false);
         } else {
-          alert('No room available');
+          // No rooms available — create a new one
+          let roomId = '';
+          const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+          for (let i = 0; i < 4; i++) {
+            roomId += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          executeJoin(roomId, true);
         }
       } catch (err) {
         console.error('Failed to get random room:', err);
-        alert('Server communication error. Please try again.');
+        // Fallback: create a new room if API fails
+        let roomId = '';
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        for (let i = 0; i < 4; i++) {
+          roomId += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        executeJoin(roomId, true);
       }
     }
   });
@@ -325,16 +325,14 @@ function initializeGame(roomId, create = false) {
     avatar: { color: avatarColorIdx, eyes: avatarEyesIdx, mouth: avatarMouthIdx }
   });
   
-  // Switch to game screen
-  document.getElementById('join-screen').classList.remove('active');
-  document.getElementById('game-screen').classList.add('active');
+  // Screen switch happens in 'game-state' listener after server confirms the join
 }
 
 // ============================================
 // SOCKET LISTENERS
 // ============================================
 function setupSocketListeners() {
-  // Initial game state
+  // Initial game state — server confirmed the join
   socket.on('game-state', (data) => {
     updatePlayerCount(data.players.length);
     currentRoomId = data.roomId;
@@ -346,6 +344,26 @@ function setupSocketListeners() {
     // Update URL query parameters silently so users can copy the path
     const newUrl = `${window.location.origin}${window.location.pathname}?room=${data.roomId}`;
     window.history.replaceState({ path: newUrl }, '', newUrl);
+
+    // Now switch to game screen (server confirmed join)
+    document.getElementById('join-screen').classList.remove('active');
+    document.getElementById('game-screen').classList.add('active');
+  });
+
+  // Server rejected the join (room doesn't exist, etc.)
+  socket.on('error-message', (data) => {
+    alert(data.text || 'Failed to join room.');
+    // Disconnect and stay on join screen
+    socket.disconnect();
+    socket = null;
+  });
+
+  // Socket connection error (server down, CORS, cold start timeout)
+  socket.on('connect_error', (err) => {
+    console.error('Socket connection error:', err);
+    alert('Could not connect to game server. Please try again.');
+    socket.disconnect();
+    socket = null;
   });
   
   // Player joined
